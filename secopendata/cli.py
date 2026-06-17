@@ -11,9 +11,9 @@ import json
 import sys
 from typing import Any
 
-from .client import NotSubscribedError, SECAPIError, SECClient
+from .client import NotSubscribedError, SECAPIError, SECClient, infer_key_scope
 from .config import MissingKeyError
-from .products import REGISTRY, FundDailyInfo, FundFactsheet
+from .products import CATEGORIES, REGISTRY, FundDailyInfo, FundFactsheet
 
 
 def _emit(data: Any) -> None:
@@ -31,10 +31,33 @@ def _kv_params(pairs: list[str] | None) -> dict[str, str]:
     return params
 
 
+def _json_arg(raw: str | None, path: str | None) -> Any | None:
+    if raw and path:
+        raise SystemExit("Use either --json or --json-file, not both.")
+    if path:
+        with open(path, "r", encoding="utf-8") as fh:
+            return json.load(fh)
+    if raw:
+        return json.loads(raw)
+    return None
+
+
 def cmd_products(args: argparse.Namespace, client: SECClient) -> Any:
     return [
         {"name": p.name, "title": p.title, "description": p.description}
         for p in REGISTRY.values()
+    ]
+
+
+def cmd_categories(args: argparse.Namespace, client: SECClient) -> Any:
+    return [
+        {
+            "key_scope": c.key_scope,
+            "env_var": f"SEC_{c.key_scope.replace('-', '_').upper()}_KEY",
+            "title": c.title,
+            "description": c.description,
+        }
+        for c in CATEGORIES.values()
     ]
 
 
@@ -97,6 +120,19 @@ def cmd_get(args: argparse.Namespace, client: SECClient) -> Any:
     return client.get(args.product, args.path or "", params=params)
 
 
+def cmd_request(args: argparse.Namespace, client: SECClient) -> Any:
+    params = _kv_params(args.param)
+    body = _json_arg(args.json, args.json_file)
+    key_scope = args.key_scope or infer_key_scope(args.path)
+    return client.request(
+        args.method,
+        args.path,
+        key_scope=key_scope,
+        params=params,
+        json_body=body,
+    )
+
+
 def build_parser() -> argparse.ArgumentParser:
     parser = argparse.ArgumentParser(
         prog="secopendata",
@@ -105,7 +141,8 @@ def build_parser() -> argparse.ArgumentParser:
     parser.add_argument("--timeout", type=int, default=30)
     sub = parser.add_subparsers(dest="command", required=True)
 
-    sub.add_parser("products", help="list registered API products").set_defaults(func=cmd_products)
+    sub.add_parser("products", help="list legacy registered API products").set_defaults(func=cmd_products)
+    sub.add_parser("categories", help="list SEC Open Data portal key scopes").set_defaults(func=cmd_categories)
     sub.add_parser("amcs", help="list all asset management companies").set_defaults(func=cmd_amcs)
 
     p_funds = sub.add_parser("funds", help="list funds for an AMC (name or unique_id)")
@@ -133,6 +170,15 @@ def build_parser() -> argparse.ArgumentParser:
     p_get.add_argument("--size-param", dest="size_param", default="limit")
     p_get.add_argument("--page-size", dest="page_size", type=int, default=100)
     p_get.set_defaults(func=cmd_get)
+
+    p_req = sub.add_parser("request", help="raw GET/POST against any api.sec.or.th path")
+    p_req.add_argument("--method", choices=["GET", "POST"], default="GET")
+    p_req.add_argument("--path", required=True, help="API path, e.g. /v1/one-report/...")
+    p_req.add_argument("--key-scope", default="", help="subscription-key scope; inferred from path if omitted")
+    p_req.add_argument("--param", action="append", help="repeatable key=value query param")
+    p_req.add_argument("--json", default="", help="JSON request body for POST endpoints")
+    p_req.add_argument("--json-file", dest="json_file", default="", help="file containing JSON request body")
+    p_req.set_defaults(func=cmd_request)
 
     return parser
 

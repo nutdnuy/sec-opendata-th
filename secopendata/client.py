@@ -93,6 +93,22 @@ def _short(text: str, limit: int = 300) -> str:
     return text[:limit]
 
 
+def infer_key_scope(path: str) -> str:
+    """Infer the subscription-key scope from an API path.
+
+    Current SEC portal paths commonly look like ``/v1/one-report/...``. Legacy
+    products look like ``/FundFactsheet/...``. The inferred scope maps to
+    ``SEC_<SCOPE>_KEY`` via :func:`secopendata.config.env_var_name`.
+    """
+    clean = path.split("?", 1)[0].strip("/")
+    parts = [part for part in clean.split("/") if part]
+    if len(parts) >= 2 and parts[0].lower().startswith("v"):
+        return parts[1]
+    if parts:
+        return parts[0]
+    return "SEC"
+
+
 class SECClient:
     """Authenticated, rate-limited HTTP client for SEC OpenAPI products."""
 
@@ -135,9 +151,29 @@ class SECClient:
         Returns ``None`` for HTTP 204 and for empty 200 bodies (common for funds
         with no data on a given day / closed market).
         """
-        key = self._key_for(product)
-        url = f"{self.base_url}/{product.strip('/')}/{path.lstrip('/')}".rstrip("/")
-        return self._request(url, key, params)
+        api_path = f"/{product.strip('/')}/{path.lstrip('/')}".rstrip("/")
+        return self.request("GET", api_path, key_scope=product, params=params)
+
+    def request(
+        self,
+        method: str,
+        path: str,
+        *,
+        key_scope: str | None = None,
+        params: Mapping[str, Any] | None = None,
+        json_body: Any | None = None,
+    ) -> Any:
+        """Call any SEC OpenAPI path and return parsed JSON (or ``None``).
+
+        Use this for the current portal's category paths such as
+        ``/v1/one-report/fs/{report_year}/financial_statement/{unique_id}`` or
+        POST endpoints under digital assets. ``key_scope`` controls which
+        subscription key is resolved. If omitted it is inferred from the path.
+        """
+        scope = key_scope or infer_key_scope(path)
+        key = self._key_for(scope)
+        url = self._url_for(path)
+        return self._request(method, url, key, params, json_body)
 
     def get_paginated(
         self,
@@ -188,13 +224,38 @@ class SECClient:
             page += 1
 
     # -- internals -------------------------------------------------------
-    def _request(self, url: str, key: str, params: Mapping[str, Any] | None) -> Any:
+    def _url_for(self, path: str) -> str:
+        if path.startswith("http://") or path.startswith("https://"):
+            if not path.startswith(self.base_url + "/"):
+                raise ValueError(f"Refusing non-SEC API URL: {path}")
+            return path
+        return f"{self.base_url}/{path.lstrip('/')}".rstrip("/")
+
+    def _request(
+        self,
+        method: str,
+        url: str,
+        key: str,
+        params: Mapping[str, Any] | None,
+        json_body: Any | None = None,
+    ) -> Any:
         attempt = 0
-        headers = {"Ocp-Apim-Subscription-Key": key, "Accept": "application/json"}
+        headers = {
+            "Ocp-Apim-Subscription-Key": key,
+            "Accept": "application/json",
+            "Content-Type": "application/json",
+            "Cache-Control": "no-cache",
+        }
+        verb = method.upper()
         while True:
             self._limiter.acquire()
-            resp = self._session.get(
-                url, headers=headers, params=params, timeout=self.timeout
+            resp = self._session.request(
+                verb,
+                url,
+                headers=headers,
+                params=params,
+                json=json_body,
+                timeout=self.timeout,
             )
             status = resp.status_code
             if status == 200:

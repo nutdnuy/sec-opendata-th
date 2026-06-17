@@ -1,9 +1,9 @@
 {
   "name": "sec-opendata",
   "version": "0.1.0",
-  "description": "Pull capital-market data from the Thai SEC OpenAPI (api.sec.or.th): fund factsheets, fund universe, daily NAV, and any other SEC API product.",
+  "description": "Pull Thai SEC Open Data from api.sec.or.th across digital assets, funds, Licence Check, One Report, provident funds, debt, equity, ESG, operators, professionals, investors, and raw /v1 endpoints.",
   "author": {
     "name": "nutdnuy"
   },
-  "keywords": ["sec", "thailand", "finance", "funds", "nav", "opendata"]
+  "keywords": ["sec", "thailand", "finance", "opendata", "one-report", "digital-assets", "funds", "nav"]
 }

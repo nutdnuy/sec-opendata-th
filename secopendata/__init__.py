@@ -3,6 +3,7 @@ from __future__ import annotations
 
 from .client import (
     BASE_URL,
+    infer_key_scope,
     NotSubscribedError,
     RateLimiter,
     SECAPIError,
@@ -11,6 +12,7 @@ from .client import (
 from .config import MissingKeyError, env_var_name, resolve_key
 from .products import (
     REGISTRY,
+    CATEGORIES,
     FundDailyInfo,
     FundFactsheet,
     Product,
@@ -21,6 +23,7 @@ __version__ = "0.1.0"
 
 __all__ = [
     "BASE_URL",
+    "infer_key_scope",
     "SECClient",
     "RateLimiter",
     "SECAPIError",
@@ -32,6 +35,7 @@ __all__ = [
     "FundDailyInfo",
     "Product",
     "REGISTRY",
+    "CATEGORIES",
     "register_product",
     "__version__",
 ]

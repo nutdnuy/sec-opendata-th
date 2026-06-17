@@ -1,14 +1,16 @@
 # sec-opendata-th
 
-A Python client **and** Claude Code plugin for pulling Thai capital-market data
-from the SEC OpenAPI (`api.sec.or.th`) — fund factsheets, the fund universe,
-fund policy / holdings / share classes, daily NAV history, and any other SEC
-API product.
+A Python client **and** Codex/Claude plugin for pulling Thai capital-market
+data from the SEC OpenAPI (`api.sec.or.th`) — every SEC Open Data portal
+category, including digital assets, funds, Licence Check, One Report, provident
+funds, debt, equity, ESG, capital-market operators/professionals, investors,
+and future `/v1/...` endpoints.
 
-The SEC exposes several *products* behind Azure API Management, each with its
-own subscription key. Two are publicly documented today — **FundFactsheet** and
-**FundDailyInfo** — and the generic `get` command reaches any other product the
-moment you have its key.
+The SEC exposes both legacy *products* such as **FundFactsheet** and
+**FundDailyInfo**, and current portal paths such as
+`/v1/one-report/fs/{report_year}/financial_statement/{unique_id}`. The generic
+`request` command reaches any endpoint once you have the matching subscription
+key.
 
 ## Install
 
@@ -28,7 +30,8 @@ is discontinued on 30 June 2026. Subscription keys carry over.
 Keys are resolved in this order:
 
 1. value passed in code
-2. `SEC_<PRODUCT>_KEY` env var, e.g. `SEC_FUNDFACTSHEET_KEY`
+2. `SEC_<PRODUCT_OR_CATEGORY>_KEY` env var, e.g. `SEC_FUNDFACTSHEET_KEY`,
+   `SEC_ONE_REPORT_KEY`, `SEC_DIGITAL_ASSET_KEY`
 3. `SEC_API_KEY` (shared fallback)
 4. `~/.config/secopendata/keys.toml`
 
@@ -51,12 +54,15 @@ Keys are never committed (`keys.toml` and `.env` are git-ignored).
 
 ```bash
 secopendata products                                   # registered products
+secopendata categories                                 # current portal key scopes
 secopendata amcs                                       # all AMCs (id + name)
 secopendata funds --amc KASIKORN                       # funds of an AMC
 secopendata nav --proj-id <id> --date 2026-06-16       # daily NAV
 secopendata nav --amc KASIKORN --abbr <ABBR> --date 2026-06-16
 secopendata fund-info --proj-id <id> --top5 <period>   # policy + classes + top5
-secopendata get --product <Name> --path <path> --param key=value [--paginate]
+secopendata get --product <Name> --path <path> --param key=value [--paginate]  # legacy
+secopendata request --method GET --path /v1/one-report/fs/2021/financial_statement/C0000000013
+secopendata request --method POST --path /v1/digital-asset/... --json '{"next_cursor":""}'
 ```
 
 All subcommands print JSON. Exit codes: `3` missing key, `4` not subscribed,
@@ -76,6 +82,15 @@ nav = FundDailyInfo(client).daily_nav(funds[0]["proj_id"], "2026-06-16")
 
 # Any other product:
 data = client.get("SomeOtherProduct", "some/path", params={"q": "x"})
+one_report = client.request(
+    "GET",
+    "/v1/one-report/fs/2021/financial_statement/C0000000013",
+)
+digital_asset = client.request(
+    "POST",
+    "/v1/digital-asset/business-operators/search",
+    json_body={"next_cursor": ""},
+)
 for row in client.get_paginated("SomeOtherProduct", "list", page_size=200):
     ...
 ```
@@ -94,10 +109,16 @@ Defaults to `https://api.sec.or.th`. If the SEC moves the gateway during the
 export SEC_API_BASE_URL="https://new-host.sec.or.th"
 ```
 
+## Use as a Codex plugin
+
+This repo is also a Codex plugin (`.codex-plugin/plugin.json`) with a
+`sec-opendata` skill. The skill prefers the generic `request` command for all
+portal categories and uses fund helpers only for convenience.
+
 ## Use as a Claude Code plugin
 
-This repo is also a plugin (`.claude-plugin/plugin.json`) with a skill and three
-slash commands.
+The repo also keeps Claude slash-command files for compatibility with older
+Claude Code workflows.
 
 ```text
 /plugin marketplace add /path/to/sec-opendata-th
@@ -106,12 +127,14 @@ slash commands.
 
 Then in Claude Code:
 
+- `/sec-categories`
+- `/sec-request GET /v1/one-report/fs/2021/financial_statement/C0000000013`
 - `/sec-funds KASIKORN`
 - `/sec-nav <proj_id> 2026-06-16`
 - `/sec-fund-info <proj_id> <top5_period>`
 
 Or just ask in natural language — the `sec-opendata` skill triggers on Thai
-fund / NAV requests and runs the CLI for you.
+SEC Open Data requests and runs the CLI for you.
 
 ## Develop
 

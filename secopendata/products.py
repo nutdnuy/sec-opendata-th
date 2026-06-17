@@ -21,7 +21,15 @@ class Product:
     description: str = ""
 
 
+@dataclass(frozen=True)
+class Category:
+    key_scope: str
+    title: str
+    description: str = ""
+
+
 REGISTRY: dict[str, Product] = {}
+CATEGORIES: dict[str, Category] = {}
 
 
 def register_product(name: str, title: str = "", description: str = "") -> Product:
@@ -29,6 +37,13 @@ def register_product(name: str, title: str = "", description: str = "") -> Produ
     product = Product(name=name, title=title or name, description=description)
     REGISTRY[name] = product
     return product
+
+
+def register_category(key_scope: str, title: str, description: str = "") -> Category:
+    """Register a current SEC Open Data portal category/key scope."""
+    category = Category(key_scope=key_scope, title=title, description=description)
+    CATEGORIES[key_scope] = category
+    return category
 
 
 FUND_FACTSHEET = register_product(
@@ -41,6 +56,21 @@ FUND_DAILY_INFO = register_product(
     "Fund Daily Info",
     "Daily NAV history per fund / share class.",
 )
+
+register_category("digital-asset", "สินทรัพย์ดิจิทัล", "Digital asset business and market data.")
+register_category("fund", "กองทุน", "Mutual fund and fund-related SEC Open Data endpoints.")
+register_category("license-check", "Licence Check", "License and regulated-person checks.")
+register_category("one-report", "One Report", "Listed-company One Report, financial statements, directors, executives, and governance data.")
+register_category("provident-fund", "กองทุนสำรองเลี้ยงชีพ", "Provident fund data.")
+register_category("debt", "ตราสารหนี้", "Debt instrument data.")
+register_category("equity", "ตราสารทุน", "Equity and listed-company data.")
+register_category("esg", "ESG", "ESG-related datasets.")
+register_category(
+    "capital-market-professional",
+    "ผู้ประกอบธุรกิจและบุคลากรในตลาดทุน",
+    "Capital-market business operators and professionals.",
+)
+register_category("investor", "ผู้ลงทุน", "Investor-related datasets.")
 
 
 def _name_of(record: dict) -> str:

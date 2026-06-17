@@ -2,7 +2,7 @@ import pytest
 import responses
 
 from secopendata import NotSubscribedError, SECAPIError, SECClient
-from secopendata.client import BASE_URL, RateLimiter
+from secopendata.client import BASE_URL, RateLimiter, infer_key_scope
 
 
 @pytest.fixture
@@ -19,6 +19,37 @@ def test_get_200_json(client):
     out = client.get("FundFactsheet", "fund/amc")
     assert out[0]["unique_id"] == "C1"
     assert responses.calls[0].request.headers["Ocp-Apim-Subscription-Key"] == "test-key"
+    assert responses.calls[0].request.headers["Cache-Control"] == "no-cache"
+
+
+def test_infer_key_scope():
+    assert infer_key_scope("/v1/one-report/fs/2021") == "one-report"
+    assert infer_key_scope("v1/digital-asset/operators") == "digital-asset"
+    assert infer_key_scope("/FundFactsheet/fund/amc") == "FundFactsheet"
+
+
+@responses.activate
+def test_request_current_portal_path_get(client, monkeypatch):
+    monkeypatch.setenv("SEC_ONE_REPORT_KEY", "one-report-key")
+    url = f"{BASE_URL}/v1/one-report/fs/2021/financial_statement/C0000000013"
+    responses.add(responses.GET, url, json={"symbol": "TEST"}, status=200)
+    out = client.request("GET", "/v1/one-report/fs/2021/financial_statement/C0000000013")
+    assert out == {"symbol": "TEST"}
+    assert responses.calls[0].request.headers["Ocp-Apim-Subscription-Key"] == "one-report-key"
+
+
+@responses.activate
+def test_request_current_portal_path_post(client, monkeypatch):
+    monkeypatch.setenv("SEC_DIGITAL_ASSET_KEY", "digital-key")
+    url = f"{BASE_URL}/v1/digital-asset/business-operators/search"
+    responses.add(responses.POST, url, json=[{"name": "operator"}], status=200)
+    out = client.request(
+        "POST",
+        "/v1/digital-asset/business-operators/search",
+        json_body={"license_type": "exchange"},
+    )
+    assert out == [{"name": "operator"}]
+    assert responses.calls[0].request.body == b'{"license_type": "exchange"}'
 
 
 @responses.activate
