@@ -21,7 +21,10 @@ pip install -e .            # installs the `secopendata` package + CLI
 
 ## Subscription keys
 
-Get keys from the [SEC API Developer Portal](https://api-portal.sec.or.th).
+Get keys from the SEC API Developer Portal. The portal is migrating:
+[secopendata.sec.or.th/sec-open-apis](https://secopendata.sec.or.th/sec-open-apis)
+is the new home; the old [api-portal.sec.or.th](https://api-portal.sec.or.th)
+is discontinued on 30 June 2026. Subscription keys carry over.
 Keys are resolved in this order:
 
 1. value passed in code
@@ -78,8 +81,17 @@ for row in client.get_paginated("SomeOtherProduct", "list", page_size=200):
 ```
 
 The client handles the subscription-key header, a sliding-window rate limiter
-(default 1500 calls / 300 s), retries on 429/5xx with `Retry-After`, and treats
-204 / empty 200 as "no data".
+(default 3000 calls / 300 s, matching the current SEC portal), retries on
+429/5xx with `Retry-After`, and treats 204 / empty 200 as "no data".
+
+### Gateway host
+
+Defaults to `https://api.sec.or.th`. If the SEC moves the gateway during the
+2026 portal migration, override it without touching code:
+
+```bash
+export SEC_API_BASE_URL="https://new-host.sec.or.th"
+```
 
 ## Use as a Claude Code plugin
 

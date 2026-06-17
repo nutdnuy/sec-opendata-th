@@ -9,6 +9,7 @@ parsed JSON. Product-specific helpers live in :mod:`secopendata.products`.
 """
 from __future__ import annotations
 
+import os
 import threading
 import time
 from collections import deque
@@ -18,10 +19,12 @@ import requests
 
 from .config import resolve_key
 
-BASE_URL = "https://api.sec.or.th"
+# Gateway host. Overridable via env in case the SEC moves the gateway during the
+# 2026 developer-portal migration (api-portal.sec.or.th -> secopendata.sec.or.th).
+BASE_URL = os.environ.get("SEC_API_BASE_URL", "https://api.sec.or.th").rstrip("/")
 
-# Default budget mirrors the SEC reference notebook: 1500 calls per 300 seconds.
-DEFAULT_CALLS = 1500
+# New portal rate limit: 3000 calls per 300 seconds (was 1500 on the old portal).
+DEFAULT_CALLS = 3000
 DEFAULT_PERIOD = 300.0
 
 
