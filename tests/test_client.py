@@ -51,6 +51,15 @@ def test_429_then_success(client, monkeypatch):
 
 
 @responses.activate
+def test_421_then_success(client, monkeypatch):
+    monkeypatch.setattr("secopendata.client.time.sleep", lambda *_: None)
+    url = f"{BASE_URL}/FundFactsheet/throttled"
+    responses.add(responses.GET, url, status=421, headers={"Retry-After": "0"})
+    responses.add(responses.GET, url, json={"ok": True}, status=200)
+    assert client.get("FundFactsheet", "throttled") == {"ok": True}
+
+
+@responses.activate
 def test_500_exhausts_retries(client, monkeypatch):
     monkeypatch.setattr("secopendata.client.time.sleep", lambda *_: None)
     url = f"{BASE_URL}/FundFactsheet/boom"

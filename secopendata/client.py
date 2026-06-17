@@ -23,18 +23,33 @@ from .config import resolve_key
 # 2026 developer-portal migration (api-portal.sec.or.th -> secopendata.sec.or.th).
 BASE_URL = os.environ.get("SEC_API_BASE_URL", "https://api.sec.or.th").rstrip("/")
 
-# New portal rate limit: 3000 calls per 300 seconds (was 1500 on the old portal).
-DEFAULT_CALLS = 3000
+# New portal limits (per the SEC Open API "Rate Limit" page):
+#   - at most 5000 calls per 300 seconds
+#   - keep at least 16 ms between consecutive requests
+DEFAULT_CALLS = 5000
 DEFAULT_PERIOD = 300.0
+DEFAULT_MIN_INTERVAL = 0.016
 
 
 class RateLimiter:
-    """Sliding-window limiter: at most ``calls`` requests in any ``period`` seconds."""
+    """Sliding-window limiter plus a minimum gap between consecutive requests.
 
-    def __init__(self, calls: int = DEFAULT_CALLS, period: float = DEFAULT_PERIOD):
+    Caps requests at ``calls`` in any ``period`` seconds, and additionally spaces
+    consecutive requests at least ``min_interval`` seconds apart (the portal asks
+    for >=16 ms between calls).
+    """
+
+    def __init__(
+        self,
+        calls: int = DEFAULT_CALLS,
+        period: float = DEFAULT_PERIOD,
+        min_interval: float = DEFAULT_MIN_INTERVAL,
+    ):
         self.calls = calls
         self.period = period
+        self.min_interval = min_interval
         self._hits: deque[float] = deque()
+        self._last: float = 0.0
         self._lock = threading.Lock()
 
     def _evict(self, now: float) -> None:
@@ -50,7 +65,12 @@ class RateLimiter:
                 if sleep_for > 0:
                     time.sleep(sleep_for)
                 self._evict(time.monotonic())
-            self._hits.append(time.monotonic())
+            gap = self.min_interval - (time.monotonic() - self._last)
+            if gap > 0:
+                time.sleep(gap)
+            stamp = time.monotonic()
+            self._hits.append(stamp)
+            self._last = stamp
 
 
 class SECAPIError(RuntimeError):
@@ -188,7 +208,8 @@ class SECClient:
                 return None
             if status in (401, 403):
                 raise NotSubscribedError(status, url, _short(resp.text))
-            if status == 429 or 500 <= status < 600:
+            # 421 is the SEC gateway's throttle response; 429 kept for safety.
+            if status in (421, 429) or 500 <= status < 600:
                 attempt += 1
                 if attempt > self.max_retries:
                     raise SECAPIError(status, url, _short(resp.text))

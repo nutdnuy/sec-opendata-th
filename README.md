@@ -81,8 +81,9 @@ for row in client.get_paginated("SomeOtherProduct", "list", page_size=200):
 ```
 
 The client handles the subscription-key header, a sliding-window rate limiter
-(default 3000 calls / 300 s, matching the current SEC portal), retries on
-429/5xx with `Retry-After`, and treats 204 / empty 200 as "no data".
+(default 5000 calls / 300 s with >=16 ms between requests, matching the current
+SEC portal), retries throttle/`5xx` responses with `Retry-After` (the SEC
+gateway throttles with HTTP **421**), and treats 204 / empty 200 as "no data".
 
 ### Gateway host
 
