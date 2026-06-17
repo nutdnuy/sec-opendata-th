@@ -1,0 +1,112 @@
+# sec-opendata-th
+
+A Python client **and** Claude Code plugin for pulling Thai capital-market data
+from the SEC OpenAPI (`api.sec.or.th`) — fund factsheets, the fund universe,
+fund policy / holdings / share classes, daily NAV history, and any other SEC
+API product.
+
+The SEC exposes several *products* behind Azure API Management, each with its
+own subscription key. Two are publicly documented today — **FundFactsheet** and
+**FundDailyInfo** — and the generic `get` command reaches any other product the
+moment you have its key.
+
+## Install
+
+```bash
+git clone https://github.com/nutdnuy/sec-opendata-th
+cd sec-opendata-th
+pip install -e .            # installs the `secopendata` package + CLI
+# (or: pip install -r requirements.txt and run via `python -m secopendata`)
+```
+
+## Subscription keys
+
+Get keys from the [SEC API Developer Portal](https://api-portal.sec.or.th).
+Keys are resolved in this order:
+
+1. value passed in code
+2. `SEC_<PRODUCT>_KEY` env var, e.g. `SEC_FUNDFACTSHEET_KEY`
+3. `SEC_API_KEY` (shared fallback)
+4. `~/.config/secopendata/keys.toml`
+
+```bash
+export SEC_FUNDFACTSHEET_KEY="your-factsheet-key"
+export SEC_FUNDDAILYINFO_KEY="your-nav-key"
+```
+
+Or `~/.config/secopendata/keys.toml`:
+
+```toml
+[keys]
+FundFactsheet = "your-factsheet-key"
+FundDailyInfo = "your-nav-key"
+```
+
+Keys are never committed (`keys.toml` and `.env` are git-ignored).
+
+## CLI
+
+```bash
+secopendata products                                   # registered products
+secopendata amcs                                       # all AMCs (id + name)
+secopendata funds --amc KASIKORN                       # funds of an AMC
+secopendata nav --proj-id <id> --date 2026-06-16       # daily NAV
+secopendata nav --amc KASIKORN --abbr <ABBR> --date 2026-06-16
+secopendata fund-info --proj-id <id> --top5 <period>   # policy + classes + top5
+secopendata get --product <Name> --path <path> --param key=value [--paginate]
+```
+
+All subcommands print JSON. Exit codes: `3` missing key, `4` not subscribed,
+`5` other API error.
+
+## Library
+
+```python
+from secopendata import SECClient, FundFactsheet, FundDailyInfo
+
+client = SECClient()
+ff = FundFactsheet(client)
+amc_id = ff.resolve_amc_id("KASIKORN")
+funds = ff.funds_by_amc(amc_id)
+
+nav = FundDailyInfo(client).daily_nav(funds[0]["proj_id"], "2026-06-16")
+
+# Any other product:
+data = client.get("SomeOtherProduct", "some/path", params={"q": "x"})
+for row in client.get_paginated("SomeOtherProduct", "list", page_size=200):
+    ...
+```
+
+The client handles the subscription-key header, a sliding-window rate limiter
+(default 1500 calls / 300 s), retries on 429/5xx with `Retry-After`, and treats
+204 / empty 200 as "no data".
+
+## Use as a Claude Code plugin
+
+This repo is also a plugin (`.claude-plugin/plugin.json`) with a skill and three
+slash commands.
+
+```text
+/plugin marketplace add /path/to/sec-opendata-th
+/plugin install sec-opendata
+```
+
+Then in Claude Code:
+
+- `/sec-funds KASIKORN`
+- `/sec-nav <proj_id> 2026-06-16`
+- `/sec-fund-info <proj_id> <top5_period>`
+
+Or just ask in natural language — the `sec-opendata` skill triggers on Thai
+fund / NAV requests and runs the CLI for you.
+
+## Develop
+
+```bash
+pip install -e ".[dev]"
+pytest          # fully mocked — no live subscription key needed
+```
+
+## License
+
+MIT
