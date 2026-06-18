@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Build a Thai equity active-vs-passive study from SEC fund factsheet data."""
+"""Build an equity active-vs-passive study from SEC fund factsheet data."""
 from __future__ import annotations
 
 import argparse
@@ -547,6 +547,17 @@ def render_report(out_dir: Path, candidates: list[Mapping[str, Any]], pairs: lis
         if includes_foreign
         else 'policy_desc = "ตราสารทุน", invest_country_flag = 3'
     )
+    report_title = (
+        "All Equity Funds: Active vs Passive"
+        if includes_foreign
+        else "Thai Equity Funds: Active vs Passive"
+    )
+    intro_text = (
+        "ศึกษากองทุนรวมตราสารทุนทั้งหมดจาก SEC Open Data โดยจับคู่ผลตอบแทนกองทุนกับผลตอบแทนตัวชี้วัดใน factsheet ล่าสุด แยกตาม active/passive และช่วงถือครอง 1, 3, 5, 10 ปี"
+        if includes_foreign
+        else "ศึกษากองทุนรวมหุ้นไทยในประเทศจาก SEC Open Data โดยจับคู่ผลตอบแทนกองทุนกับผลตอบแทนตัวชี้วัดใน factsheet ล่าสุด แยกตาม active/passive และช่วงถือครอง 1, 3, 5, 10 ปี"
+    )
+    class_kpi_label = "share classes in all equity universe" if includes_foreign else "share classes in Thai equity universe"
 
     insight_rows = []
     for horizon in HORIZONS:
@@ -565,7 +576,7 @@ def render_report(out_dir: Path, candidates: list[Mapping[str, Any]], pairs: lis
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>Thai Equity Funds: Active vs Passive</title>
+<title>{html_escape(report_title)}</title>
 <style>
 :root {{
   --bg:#121212; --surface:#1D1D1D; --surface2:#242424; --surface3:#2E2E2E;
@@ -607,8 +618,8 @@ a {{ color:var(--teal); }}
 <body><main>
 <header>
   <div>
-    <h1>Thai Equity Funds: Active vs Passive</h1>
-    <p>ศึกษากองทุนรวมหุ้นไทยจาก SEC Open Data โดยจับคู่ผลตอบแทนกองทุนกับผลตอบแทนตัวชี้วัดใน factsheet ล่าสุด แยกตาม active/passive และช่วงถือครอง 1, 3, 5, 10 ปี</p>
+    <h1>{html_escape(report_title)}</h1>
+    <p>{html_escape(intro_text)}</p>
     <div class="meta">Generated {REPORT_DATE} Asia/Bangkok · Common factsheet effective date: {html_escape(common_as_of)}</div>
   </div>
   <div class="meta">
@@ -618,7 +629,7 @@ a {{ color:var(--teal); }}
 </header>
 
 <section class="kpis">
-  <div class="kpi"><div class="value">{len(candidates):,}</div><div class="label">share classes in Thai equity universe</div></div>
+  <div class="kpi"><div class="value">{len(candidates):,}</div><div class="label">{html_escape(class_kpi_label)}</div></div>
   <div class="kpi"><div class="value">{candidate_projects:,}</div><div class="label">fund projects before de-duplication</div></div>
   <div class="kpi"><div class="value">{pct(active_1y.get('win_rate'))}</div><div class="label">active class win rate, 1Y</div></div>
   <div class="kpi"><div class="value">{pct(active_10y.get('win_rate'))}</div><div class="label">active class win rate, 10Y</div></div>
