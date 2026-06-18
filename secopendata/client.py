@@ -118,6 +118,7 @@ class SECClient:
         base_url: str = BASE_URL,
         calls: int = DEFAULT_CALLS,
         period: float = DEFAULT_PERIOD,
+        min_interval: float = DEFAULT_MIN_INTERVAL,
         timeout: int = 30,
         max_retries: int = 3,
         session: requests.Session | None = None,
@@ -125,7 +126,7 @@ class SECClient:
         self.base_url = base_url.rstrip("/")
         self.timeout = timeout
         self.max_retries = max_retries
-        self._limiter = RateLimiter(calls, period)
+        self._limiter = RateLimiter(calls, period, min_interval)
         self._session = session or requests.Session()
         self._keys: dict[str, str] = {}
 

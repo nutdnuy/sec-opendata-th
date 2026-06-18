@@ -14,5 +14,9 @@ keys.toml
 .env
 *.local
 
+# Local research/data outputs
+outputs/
+data/
+
 # OS
 .DS_Store

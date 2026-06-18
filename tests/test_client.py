@@ -137,3 +137,9 @@ def test_rate_limiter_allows_burst_under_limit():
     for _ in range(3):
         rl.acquire()  # should not block
     assert len(rl._hits) == 3
+
+
+def test_client_accepts_custom_min_interval(monkeypatch):
+    monkeypatch.setenv("SEC_API_KEY", "test-key")
+    client = SECClient(min_interval=0.123)
+    assert client._limiter.min_interval == 0.123

@@ -105,6 +105,31 @@ The client handles the subscription-key header, a sliding-window rate limiter
 SEC portal), retries throttle/`5xx` responses with `Retry-After` (the SEC
 gateway throttles with HTTP **421**), and treats 204 / empty 200 as "no data".
 
+## Thai equity active/passive study
+
+The `scripts/` folder includes resumable research utilities for SEC Fund v2
+data. They read `SEC_FUND_KEY` from the environment and write local artifacts
+under `outputs/`, which is intentionally git-ignored.
+
+```bash
+export SEC_FUND_KEY="your-v2-fund-key"
+
+# 1) Export the full fund profile universe once.
+python scripts/sec_fund_research_export.py profiles \
+  --out outputs/sec-active-passive/raw
+
+# 2) Build the latest factsheet active-vs-passive study for Thai equity funds.
+python scripts/sec_active_passive_study.py all \
+  --raw-dir outputs/sec-active-passive/raw \
+  --out outputs/sec-active-passive/study
+```
+
+The study filters `policy_desc = "ตราสารทุน"` and `invest_country_flag = 3`,
+classifies active/passive from `management_style`, and compares SEC factsheet
+`ผลตอบแทนกองทุนรวม` against `ผลตอบแทนตัวชี้วัด` for 1Y/3Y/5Y/10Y. Outputs
+include `latest_return_pairs.csv`, `summary_by_horizon_style.csv`, and a
+QuantSeras-style HTML report at `outputs/sec-active-passive/study/index.html`.
+
 ### Gateway host
 
 Defaults to `https://api.sec.or.th`. If the SEC moves the gateway during the
