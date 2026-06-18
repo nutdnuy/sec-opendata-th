@@ -96,14 +96,15 @@ def style_bucket(style: Any) -> str:
     return "unknown"
 
 
-def is_domestic_thai_equity(row: Mapping[str, Any]) -> bool:
-    return (
-        str(row.get("policy_desc") or "").strip() == POLICY_EQUITY_TH
-        and str(row.get("invest_country_flag") or "").strip() == "3"
-    )
+def is_equity_profile(row: Mapping[str, Any], *, include_foreign_equity: bool) -> bool:
+    if str(row.get("policy_desc") or "").strip() != POLICY_EQUITY_TH:
+        return False
+    if include_foreign_equity:
+        return True
+    return str(row.get("invest_country_flag") or "").strip() == "3"
 
 
-def load_candidates(raw_dir: Path) -> list[dict[str, Any]]:
+def load_candidates(raw_dir: Path, *, include_foreign_equity: bool = False) -> list[dict[str, Any]]:
     profiles_path = raw_dir / "profiles.jsonl"
     if not profiles_path.exists():
         raise SystemExit(f"Missing {profiles_path}. Run sec_fund_research_export.py profiles first.")
@@ -111,7 +112,7 @@ def load_candidates(raw_dir: Path) -> list[dict[str, Any]]:
     seen: set[tuple[str, str]] = set()
     rows: list[dict[str, Any]] = []
     for profile in iter_jsonl(profiles_path):
-        if not is_domestic_thai_equity(profile):
+        if not is_equity_profile(profile, include_foreign_equity=include_foreign_equity):
             continue
         proj_id = str(profile.get("proj_id") or "").strip()
         class_name = str(profile.get("fund_class_name") or "main").strip() or "main"
@@ -166,7 +167,7 @@ def client_from_args(args: argparse.Namespace) -> SECClient:
 
 
 def fetch_latest(args: argparse.Namespace) -> None:
-    candidates = load_candidates(args.raw_dir)
+    candidates = load_candidates(args.raw_dir, include_foreign_equity=args.include_foreign_equity)
     if args.limit:
         candidates = candidates[: args.limit]
     args.out.mkdir(parents=True, exist_ok=True)
@@ -540,6 +541,12 @@ def render_report(out_dir: Path, candidates: list[Mapping[str, Any]], pairs: lis
     style_counts = Counter(r["_style_bucket"] for r in candidates)
     as_of_dates = Counter(str(r.get("as_of_start_date") or "") for r in pairs)
     common_as_of = as_of_dates.most_common(1)[0][0] if as_of_dates else "n/a"
+    includes_foreign = any(str(r.get("invest_country_flag") or "").strip() != "3" for r in candidates)
+    universe_text = (
+        'policy_desc = "ตราสารทุน" รวมทุก invest_country_flag'
+        if includes_foreign
+        else 'policy_desc = "ตราสารทุน", invest_country_flag = 3'
+    )
 
     insight_rows = []
     for horizon in HORIZONS:
@@ -605,7 +612,7 @@ a {{ color:var(--teal); }}
     <div class="meta">Generated {REPORT_DATE} Asia/Bangkok · Common factsheet effective date: {html_escape(common_as_of)}</div>
   </div>
   <div class="meta">
-    Universe: policy_desc = “ตราสารทุน”, invest_country_flag = 3.<br>
+    Universe: {html_escape(universe_text)}.<br>
     Classification: SEC management_style, AM=active, PM=passive, SM=semi-passive.
   </div>
 </header>
@@ -669,7 +676,7 @@ a {{ color:var(--teal); }}
 
 
 def analyze(args: argparse.Namespace) -> None:
-    candidates = load_candidates(args.raw_dir)
+    candidates = load_candidates(args.raw_dir, include_foreign_equity=args.include_foreign_equity)
     if args.limit:
         candidates = candidates[: args.limit]
     pairs = build_return_pairs(args.out)
@@ -684,6 +691,7 @@ def analyze(args: argparse.Namespace) -> None:
             "generated_at": dt.datetime.now(dt.UTC).isoformat(timespec="seconds"),
             "candidate_classes": len(candidates),
             "candidate_projects": len({r["proj_id"] for r in candidates}),
+            "include_foreign_equity": args.include_foreign_equity,
             "return_pairs": len(pairs),
             "horizons": list(HORIZONS),
             "method": "SEC factsheet latest fund return versus factsheet benchmark return",
@@ -701,6 +709,11 @@ def build_parser() -> argparse.ArgumentParser:
         p.add_argument("--raw-dir", type=Path, default=RAW_DEFAULT)
         p.add_argument("--out", type=Path, default=STUDY_DEFAULT)
         p.add_argument("--limit", type=int, default=0)
+        p.add_argument(
+            "--include-foreign-equity",
+            action="store_true",
+            help="include every policy_desc=ตราสารทุน fund instead of only invest_country_flag=3",
+        )
         if name in {"fetch-latest", "all"}:
             p.add_argument("--page-size", type=int, default=100)
             p.add_argument("--force", action="store_true")
