@@ -15,11 +15,12 @@ Provide a Python CLI/client and reusable agent skill for pulling data from
 - One Report
 - provident funds
 - debt
+- bonds
 - equity
 - ESG
 - capital-market operators/professionals
 - investors
-- any future `/v1/...` endpoint copied from `secopendata.sec.or.th`
+- any future `/v1/...` or `/v2/...` endpoint copied from `secopendata.sec.or.th`
 
 ## Core Commands
 
@@ -29,13 +30,15 @@ Use the virtual environment when available:
 .venv/bin/python -m pytest -q
 .venv/bin/python -m secopendata categories
 .venv/bin/python -m secopendata request --method GET --path /v1/one-report/fs/2021/financial_statement/C0000000013
+.venv/bin/python -m secopendata request --method GET --path /v2/fund/factsheet/performance --cursor-paginate
 ```
 
 Generic endpoint access must go through:
 
 ```bash
 python -m secopendata request --method GET --path /v1/<category>/<path>
-python -m secopendata request --method POST --path /v1/<category>/<path> --json '{"next_cursor":""}'
+python -m secopendata request --method GET --path /v2/<category>/<path> --cursor-paginate
+python -m secopendata request --method POST --path /v1/<category>/<path> --json '{"Name":""}'
 ```
 
 Keep legacy fund helpers, but do not build new category-specific helpers unless
@@ -51,14 +54,14 @@ Never commit subscription keys. Key resolution is:
 3. `SEC_API_KEY`
 4. `~/.config/secopendata/keys.toml`
 
-Examples: `SEC_ONE_REPORT_KEY`, `SEC_DIGITAL_ASSET_KEY`,
-`SEC_LICENSE_CHECK_KEY`, `SEC_PROVIDENT_FUND_KEY`.
+Examples: `SEC_ONE_REPORT_KEY`, `SEC_DIGITAL_ASSET_KEY`, `SEC_FUND_KEY`,
+`SEC_BOND_KEY`, `SEC_PVD_KEY`, `SEC_LICENSE_CHECK_KEY`.
 
 ## Plugin Surfaces
 
 - Codex plugin manifest: `.codex-plugin/plugin.json`
 - Claude plugin manifest: `.claude-plugin/plugin.json`
-- Shared skill: `skills/sec-opendata/SKILL.md`
+- Shared skill: `skills/sec-open-api/SKILL.md`
 - Claude slash commands: `commands/*.md`
 - GitHub Copilot instructions: `.github/copilot-instructions.md`
 - Antigravity/Gemini instructions: `GEMINI.md`
@@ -77,4 +80,3 @@ same guidance.
 ```bash
 python3 ~/.codex/skills/.system/plugin-creator/scripts/validate_plugin.py .
 ```
-

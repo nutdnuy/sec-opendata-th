@@ -4,13 +4,13 @@ A Python client **and** Codex/Claude plugin for pulling Thai capital-market
 data from the SEC OpenAPI (`api.sec.or.th`) — every SEC Open Data portal
 category, including digital assets, funds, Licence Check, One Report, provident
 funds, debt, equity, ESG, capital-market operators/professionals, investors,
-and future `/v1/...` endpoints.
+and future `/v1/...` or `/v2/...` endpoints.
 
 The SEC exposes both legacy *products* such as **FundFactsheet** and
 **FundDailyInfo**, and current portal paths such as
-`/v1/one-report/fs/{report_year}/financial_statement/{unique_id}`. The generic
-`request` command reaches any endpoint once you have the matching subscription
-key.
+`/v1/one-report/fs/{report_year}/financial_statement/{unique_id}` and
+`/v2/fund/factsheet/performance`. The generic `request` command reaches any
+endpoint once you have the matching subscription key.
 
 ## Install
 
@@ -30,14 +30,16 @@ is discontinued on 30 June 2026. Subscription keys carry over.
 Keys are resolved in this order:
 
 1. value passed in code
-2. `SEC_<PRODUCT_OR_CATEGORY>_KEY` env var, e.g. `SEC_FUNDFACTSHEET_KEY`,
-   `SEC_ONE_REPORT_KEY`, `SEC_DIGITAL_ASSET_KEY`
+2. `SEC_<PRODUCT_OR_CATEGORY>_KEY` env var, e.g. `SEC_FUND_KEY`,
+   `SEC_BOND_KEY`, `SEC_PVD_KEY`, `SEC_ONE_REPORT_KEY`,
+   `SEC_DIGITAL_ASSET_KEY`
 3. `SEC_API_KEY` (shared fallback)
 4. `~/.config/secopendata/keys.toml`
 
 ```bash
 export SEC_FUNDFACTSHEET_KEY="your-factsheet-key"
 export SEC_FUNDDAILYINFO_KEY="your-nav-key"
+export SEC_FUND_KEY="your-v2-fund-key"
 ```
 
 Or `~/.config/secopendata/keys.toml`:
@@ -62,7 +64,9 @@ secopendata nav --amc KASIKORN --abbr <ABBR> --date 2026-06-16
 secopendata fund-info --proj-id <id> --top5 <period>   # policy + classes + top5
 secopendata get --product <Name> --path <path> --param key=value [--paginate]  # legacy
 secopendata request --method GET --path /v1/one-report/fs/2021/financial_statement/C0000000013
-secopendata request --method POST --path /v1/digital-asset/... --json '{"next_cursor":""}'
+secopendata request --method GET --path /v2/fund/factsheet/performance --cursor-paginate
+secopendata request --method GET --path /v2/fund/factsheet/benchmarks --cursor-paginate
+secopendata request --method POST --path /v1/digital-asset/profile/intermediary --json '{"IntermediaryName":""}'
 ```
 
 All subcommands print JSON. Exit codes: `3` missing key, `4` not subscribed,
@@ -88,10 +92,11 @@ one_report = client.request(
 )
 digital_asset = client.request(
     "POST",
-    "/v1/digital-asset/business-operators/search",
-    json_body={"next_cursor": ""},
+    "/v1/digital-asset/profile/intermediary",
+    json_body={"IntermediaryName": ""},
 )
-for row in client.get_paginated("SomeOtherProduct", "list", page_size=200):
+
+for row in client.request_cursor_paginated("/v2/fund/factsheet/performance"):
     ...
 ```
 
@@ -112,8 +117,8 @@ export SEC_API_BASE_URL="https://new-host.sec.or.th"
 ## Use as a Codex plugin
 
 This repo is also a Codex plugin (`.codex-plugin/plugin.json`) with a
-`sec-opendata` skill. The skill prefers the generic `request` command for all
-portal categories and uses fund helpers only for convenience.
+`sec-open-api` skill. The skill includes endpoint references for bond, fund,
+PVD, digital asset, license, and One Report APIs.
 
 ## Use as a Claude Code plugin
 
@@ -133,7 +138,7 @@ Then in Claude Code:
 - `/sec-nav <proj_id> 2026-06-16`
 - `/sec-fund-info <proj_id> <top5_period>`
 
-Or just ask in natural language — the `sec-opendata` skill triggers on Thai
+Or just ask in natural language — the `sec-open-api` skill triggers on Thai
 SEC Open Data requests and runs the CLI for you.
 
 ## Develop

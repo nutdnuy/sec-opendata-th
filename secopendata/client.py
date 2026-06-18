@@ -175,6 +175,38 @@ class SECClient:
         url = self._url_for(path)
         return self._request(method, url, key, params, json_body)
 
+    def request_cursor_paginated(
+        self,
+        path: str,
+        *,
+        key_scope: str | None = None,
+        params: Mapping[str, Any] | None = None,
+        page_size: int = 100,
+        cursor_param: str = "next_cursor",
+        max_pages: int = 1000,
+    ) -> Iterator[Any]:
+        """Yield ``items`` across SEC v2 cursor-paginated endpoints."""
+        query = dict(params or {})
+        query.setdefault("page_size", page_size)
+        cursor = str(query.get(cursor_param, ""))
+        for _ in range(max_pages):
+            query[cursor_param] = cursor
+            data = self.request("GET", path, key_scope=key_scope, params=query)
+            if data is None:
+                return
+            if not isinstance(data, Mapping):
+                yield data
+                return
+            items = data.get("items")
+            if not isinstance(items, list):
+                yield data
+                return
+            for item in items:
+                yield item
+            cursor = str(data.get(cursor_param) or "")
+            if not cursor:
+                return
+
     def get_paginated(
         self,
         product: str,

@@ -57,12 +57,14 @@ FUND_DAILY_INFO = register_product(
     "Daily NAV history per fund / share class.",
 )
 
+register_category("bond", "ตราสารหนี้", "Bond v2 endpoints.")
 register_category("digital-asset", "สินทรัพย์ดิจิทัล", "Digital asset business and market data.")
-register_category("fund", "กองทุน", "Mutual fund and fund-related SEC Open Data endpoints.")
+register_category("fund", "กองทุน", "Mutual fund v2 endpoints and fund-related data.")
 register_category("license-check", "Licence Check", "License and regulated-person checks.")
 register_category("one-report", "One Report", "Listed-company One Report, financial statements, directors, executives, and governance data.")
-register_category("provident-fund", "กองทุนสำรองเลี้ยงชีพ", "Provident fund data.")
-register_category("debt", "ตราสารหนี้", "Debt instrument data.")
+register_category("pvd", "กองทุนสำรองเลี้ยงชีพ", "Provident fund v1 endpoints.")
+register_category("provident-fund", "กองทุนสำรองเลี้ยงชีพ (alias)", "Alias label for provident fund data; API paths use pvd.")
+register_category("debt", "ตราสารหนี้ (alias)", "Alias label for debt data; API paths use bond.")
 register_category("equity", "ตราสารทุน", "Equity and listed-company data.")
 register_category("esg", "ESG", "ESG-related datasets.")
 register_category(

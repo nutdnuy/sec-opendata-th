@@ -1,9 +1,9 @@
 {
   "name": "sec-opendata",
   "version": "0.1.0",
-  "description": "Pull Thai SEC Open Data from api.sec.or.th across digital assets, funds, Licence Check, One Report, provident funds, debt, equity, ESG, operators, professionals, investors, and raw /v1 endpoints.",
+  "description": "Pull Thai SEC Open Data from api.sec.or.th across v1/v2 bond, fund, PVD, digital asset, Licence Check, One Report, and related endpoints.",
   "author": {
     "name": "nutdnuy"
   },
-  "keywords": ["sec", "thailand", "finance", "opendata", "one-report", "digital-assets", "funds", "nav"]
+  "keywords": ["sec", "thailand", "finance", "opendata", "one-report", "digital-assets", "funds", "bond", "pvd", "nav"]
 }

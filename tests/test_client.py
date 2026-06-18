@@ -41,15 +41,37 @@ def test_request_current_portal_path_get(client, monkeypatch):
 @responses.activate
 def test_request_current_portal_path_post(client, monkeypatch):
     monkeypatch.setenv("SEC_DIGITAL_ASSET_KEY", "digital-key")
-    url = f"{BASE_URL}/v1/digital-asset/business-operators/search"
+    url = f"{BASE_URL}/v1/digital-asset/profile/intermediary"
     responses.add(responses.POST, url, json=[{"name": "operator"}], status=200)
     out = client.request(
         "POST",
-        "/v1/digital-asset/business-operators/search",
-        json_body={"license_type": "exchange"},
+        "/v1/digital-asset/profile/intermediary",
+        json_body={"IntermediaryName": ""},
     )
     assert out == [{"name": "operator"}]
-    assert responses.calls[0].request.body == b'{"license_type": "exchange"}'
+    assert responses.calls[0].request.body == b'{"IntermediaryName": ""}'
+
+
+@responses.activate
+def test_request_cursor_paginated_v2(client, monkeypatch):
+    monkeypatch.setenv("SEC_FUND_KEY", "fund-key")
+    url = f"{BASE_URL}/v2/fund/factsheet/performance"
+    responses.add(
+        responses.GET,
+        url,
+        json={"message": "success", "page_size": 2, "next_cursor": "abc", "items": [{"proj_id": "A"}]},
+        status=200,
+    )
+    responses.add(
+        responses.GET,
+        url,
+        json={"message": "success", "page_size": 2, "next_cursor": "", "items": [{"proj_id": "B"}]},
+        status=200,
+    )
+    items = list(client.request_cursor_paginated("/v2/fund/factsheet/performance", page_size=2))
+    assert items == [{"proj_id": "A"}, {"proj_id": "B"}]
+    assert "page_size=2" in responses.calls[0].request.url
+    assert "next_cursor=abc" in responses.calls[1].request.url
 
 
 @responses.activate

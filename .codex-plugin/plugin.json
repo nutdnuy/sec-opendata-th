@@ -1,7 +1,7 @@
 {
   "name": "sec-opendata",
   "version": "0.1.0",
-  "description": "Pull Thai SEC Open Data from api.sec.or.th across digital assets, funds, Licence Check, One Report, provident funds, debt, equity, ESG, operators, professionals, investors, and raw /v1 endpoints.",
+  "description": "Pull Thai SEC Open Data from api.sec.or.th across v1/v2 bond, fund, PVD, digital asset, Licence Check, One Report, and related endpoints.",
   "author": {
     "name": "nutdnuy"
   },
@@ -15,13 +15,15 @@
     "opendata",
     "one-report",
     "digital-assets",
-    "funds"
+    "funds",
+    "bond",
+    "pvd"
   ],
   "skills": "./skills/",
   "interface": {
     "displayName": "SEC OpenData TH",
     "shortDescription": "Fetch Thai SEC Open Data across all portal categories.",
-    "longDescription": "A Codex skill and Python CLI for SEC Open Data Thailand. It supports legacy fund products plus current /v1 portal endpoints for digital assets, funds, Licence Check, One Report, provident funds, debt, equity, ESG, operators, professionals, investors, and future categories.",
+    "longDescription": "A Codex skill and Python CLI for SEC Open Data Thailand. It supports the sec-open-api skill with bundled endpoint references for v2 bond/fund APIs and v1 PVD, digital asset, Licence Check, and One Report APIs, plus generic raw request support.",
     "developerName": "nutdnuy",
     "category": "Data & Analytics",
     "capabilities": [
@@ -30,9 +32,9 @@
     ],
     "websiteURL": "https://secopendata.sec.or.th/",
     "defaultPrompt": [
+      "Fetch fund performance history.",
       "Fetch a One Report financial statement.",
-      "List SEC portal API key scopes.",
-      "Pull digital-asset SEC Open Data."
+      "List SEC portal API key scopes."
     ],
     "brandColor": "#00A09B"
   }

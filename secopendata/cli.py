@@ -124,6 +124,19 @@ def cmd_request(args: argparse.Namespace, client: SECClient) -> Any:
     params = _kv_params(args.param)
     body = _json_arg(args.json, args.json_file)
     key_scope = args.key_scope or infer_key_scope(args.path)
+    if args.cursor_paginate:
+        if args.method != "GET":
+            raise SystemExit("--cursor-paginate is only supported for GET endpoints.")
+        return list(
+            client.request_cursor_paginated(
+                args.path,
+                key_scope=key_scope,
+                params=params,
+                page_size=args.page_size,
+                cursor_param=args.cursor_param,
+                max_pages=args.max_pages,
+            )
+        )
     return client.request(
         args.method,
         args.path,
@@ -178,6 +191,10 @@ def build_parser() -> argparse.ArgumentParser:
     p_req.add_argument("--param", action="append", help="repeatable key=value query param")
     p_req.add_argument("--json", default="", help="JSON request body for POST endpoints")
     p_req.add_argument("--json-file", dest="json_file", default="", help="file containing JSON request body")
+    p_req.add_argument("--cursor-paginate", action="store_true", help="follow v2 next_cursor pages and emit combined items")
+    p_req.add_argument("--cursor-param", dest="cursor_param", default="next_cursor")
+    p_req.add_argument("--page-size", dest="page_size", type=int, default=100)
+    p_req.add_argument("--max-pages", dest="max_pages", type=int, default=1000)
     p_req.set_defaults(func=cmd_request)
 
     return parser
