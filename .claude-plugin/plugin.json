@@ -3,7 +3,25 @@
   "version": "0.1.0",
   "description": "Pull Thai SEC Open Data from api.sec.or.th across v1/v2 bond, fund, PVD, digital asset, Licence Check, One Report, and related endpoints.",
   "author": {
-    "name": "nutdnuy"
+    "name": "nutdnuy",
+    "url": "https://github.com/nutdnuy"
   },
-  "keywords": ["sec", "thailand", "finance", "opendata", "one-report", "digital-assets", "funds", "bond", "pvd", "nav"]
+  "homepage": "https://secopendata.sec.or.th/",
+  "repository": "https://github.com/nutdnuy/sec-opendata-th",
+  "license": "MIT",
+  "keywords": [
+    "sec",
+    "thailand",
+    "finance",
+    "opendata",
+    "one-report",
+    "digital-assets",
+    "funds",
+    "bond",
+    "pvd",
+    "nav"
+  ],
+  "skills": [
+    "./skills/sec-open-api"
+  ]
 }

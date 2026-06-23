@@ -1,0 +1,20 @@
+{
+  "name": "sec-opendata-th",
+  "interface": {
+    "displayName": "SEC OpenData TH"
+  },
+  "plugins": [
+    {
+      "name": "sec-opendata",
+      "source": {
+        "source": "local",
+        "path": "./"
+      },
+      "policy": {
+        "installation": "AVAILABLE",
+        "authentication": "ON_INSTALL"
+      },
+      "category": "Data & Analytics"
+    }
+  ]
+}

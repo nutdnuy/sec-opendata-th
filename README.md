@@ -153,15 +153,28 @@ This repo is also a Codex plugin (`.codex-plugin/plugin.json`) with a
 `sec-open-api` skill. The skill includes endpoint references for bond, fund,
 PVD, digital asset, license, and One Report APIs.
 
+```bash
+codex plugin marketplace add nutdnuy/sec-opendata-th
+```
+
+Then enable/install `sec-opendata` from the Codex plugin UI. The repo includes
+`.agents/plugins/marketplace.json` so Codex can read it as a marketplace, and
+`.codex-plugin/plugin.json` so the plugin root is valid.
+
 ## Use as a Claude Code plugin
 
-The repo also keeps Claude slash-command files for compatibility with older
-Claude Code workflows.
+The repo is a Claude marketplace and plugin. Add this GitHub repository as a
+marketplace in Claude Code:
 
 ```text
-/plugin marketplace add /path/to/sec-opendata-th
+/plugin marketplace add https://github.com/nutdnuy/sec-opendata-th
 /plugin install sec-opendata
 ```
+
+The Claude UI "Add marketplace" field should use the same GitHub URL:
+`https://github.com/nutdnuy/sec-opendata-th`. The marketplace manifest lives at
+`.claude-plugin/marketplace.json`, and the plugin manifest lives at
+`.claude-plugin/plugin.json`.
 
 Then in Claude Code:
 

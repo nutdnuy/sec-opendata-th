@@ -1,0 +1,23 @@
+{
+  "name": "sec-opendata-th",
+  "description": "Marketplace for the SEC OpenData Thailand plugin.",
+  "owner": {
+    "name": "nutdnuy",
+    "url": "https://github.com/nutdnuy"
+  },
+  "metadata": {
+    "description": "Claude-compatible plugin and SEC Open Data Thailand client for fund, bond, PVD, digital asset, Licence Check, One Report, and generic v1/v2 portal endpoints."
+  },
+  "plugins": [
+    {
+      "name": "sec-opendata",
+      "description": "Pull Thai SEC Open Data from api.sec.or.th across current portal categories and legacy fund endpoints.",
+      "version": "0.1.0",
+      "source": "./",
+      "author": {
+        "name": "nutdnuy",
+        "url": "https://github.com/nutdnuy"
+      }
+    }
+  ]
+}

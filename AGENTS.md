@@ -60,7 +60,9 @@ Examples: `SEC_ONE_REPORT_KEY`, `SEC_DIGITAL_ASSET_KEY`, `SEC_FUND_KEY`,
 ## Plugin Surfaces
 
 - Codex plugin manifest: `.codex-plugin/plugin.json`
+- Codex marketplace manifest: `.agents/plugins/marketplace.json`
 - Claude plugin manifest: `.claude-plugin/plugin.json`
+- Claude marketplace manifest: `.claude-plugin/marketplace.json`
 - Shared skill: `skills/sec-open-api/SKILL.md`
 - Claude slash commands: `commands/*.md`
 - GitHub Copilot instructions: `.github/copilot-instructions.md`
