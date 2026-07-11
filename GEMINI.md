@@ -7,6 +7,8 @@ Use the Python CLI for data pulls:
 
 ```bash
 .venv/bin/python -m secopendata categories
+.venv/bin/python -m secopendata amc-search "กสิกร"
+.venv/bin/python -m secopendata fund-search "K-CHANGE" --status Registered
 .venv/bin/python -m secopendata request --method GET --path /v1/<category>/<path>
 .venv/bin/python -m secopendata request --method GET --path /v2/fund/factsheet/performance --cursor-paginate
 .venv/bin/python -m secopendata request --method POST --path /v1/<category>/<path> --json '{"Name":""}'
@@ -17,3 +19,7 @@ generic `/v1` endpoint coverage for digital assets, funds, Licence Check, One
 Report, provident funds, debt, equity, ESG, operators/professionals, investors,
 and future SEC portal categories. Use `--cursor-paginate` for v2 endpoints that
 return `next_cursor` and `items`.
+
+Resolve fund and AMC names from the bundled offline catalog before asking for a
+subscription key. Use the live API when the user needs fresher data or details
+that are not present in the compact catalog.

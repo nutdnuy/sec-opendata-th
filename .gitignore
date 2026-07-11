@@ -17,6 +17,8 @@ keys.toml
 # Local research/data outputs
 outputs/
 data/
+!secopendata/data/
+!secopendata/data/fund_catalog.json.gz
 
 # OS
 .DS_Store

@@ -57,6 +57,9 @@ Keys are never committed (`keys.toml` and `.env` are git-ignored).
 ```bash
 secopendata products                                   # registered products
 secopendata categories                                 # current portal key scopes
+secopendata catalog-info                               # bundled snapshot metadata
+secopendata amc-search "กสิกร"                         # offline AMC lookup; no key
+secopendata fund-search "K-CHANGE" --status Registered # offline fund lookup; no key
 secopendata amcs                                       # all AMCs (id + name)
 secopendata funds --amc KASIKORN                       # funds of an AMC
 secopendata nav --proj-id <id> --date 2026-06-16       # daily NAV
@@ -71,6 +74,10 @@ secopendata request --method POST --path /v1/digital-asset/profile/intermediary 
 
 All subcommands print JSON. Exit codes: `3` missing key, `4` not subscribed,
 `5` other API error.
+
+`amc-search` and `fund-search` use the bundled compact SEC profile snapshot and
+do not make a network request. Run `catalog-info` to check its as-of date before
+relying on current registration status.
 
 ## Library
 
@@ -179,6 +186,7 @@ The Claude UI "Add marketplace" field should use the same GitHub URL:
 Then in Claude Code:
 
 - `/sec-categories`
+- `/sec-fund-search K-CHANGE`
 - `/sec-request GET /v1/one-report/fs/2021/financial_statement/C0000000013`
 - `/sec-funds KASIKORN`
 - `/sec-nav <proj_id> 2026-06-16`
