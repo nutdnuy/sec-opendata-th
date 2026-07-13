@@ -11,6 +11,7 @@ import json
 import sys
 from typing import Any
 
+from .catalog import FundCatalog
 from .client import NotSubscribedError, SECAPIError, SECClient, infer_key_scope
 from .config import MissingKeyError
 from .products import CATEGORIES, REGISTRY, FundDailyInfo, FundFactsheet
@@ -107,6 +108,23 @@ def cmd_fund_info(args: argparse.Namespace, client: SECClient) -> Any:
     return info
 
 
+def cmd_catalog_info(args: argparse.Namespace, client: SECClient) -> Any:
+    return FundCatalog.bundled().info()
+
+
+def cmd_amc_search(args: argparse.Namespace, client: SECClient) -> Any:
+    return FundCatalog.bundled().search_amcs(args.query, limit=args.limit)
+
+
+def cmd_fund_search(args: argparse.Namespace, client: SECClient) -> Any:
+    return FundCatalog.bundled().search_funds(
+        args.query,
+        amc=args.amc,
+        status=args.status,
+        limit=args.limit,
+    )
+
+
 def cmd_get(args: argparse.Namespace, client: SECClient) -> Any:
     params = _kv_params(args.param)
     if args.paginate:
@@ -173,6 +191,29 @@ def build_parser() -> argparse.ArgumentParser:
     p_info.add_argument("--proj-id", dest="proj_id", required=True)
     p_info.add_argument("--top5", default="", help="period, e.g. a fiscal/quarter code")
     p_info.set_defaults(func=cmd_fund_info)
+
+    sub.add_parser(
+        "catalog-info",
+        help="describe the bundled offline fund/AMC snapshot",
+    ).set_defaults(func=cmd_catalog_info)
+
+    p_amc_search = sub.add_parser(
+        "amc-search",
+        help="search the bundled AMC snapshot without an API key",
+    )
+    p_amc_search.add_argument("query", nargs="?", default="")
+    p_amc_search.add_argument("--limit", type=int, default=20)
+    p_amc_search.set_defaults(func=cmd_amc_search)
+
+    p_fund_search = sub.add_parser(
+        "fund-search",
+        help="search the bundled fund snapshot without an API key",
+    )
+    p_fund_search.add_argument("query", nargs="?", default="")
+    p_fund_search.add_argument("--amc", default="", help="AMC name or unique_id filter")
+    p_fund_search.add_argument("--status", default="", help="e.g. Registered or Liquidated")
+    p_fund_search.add_argument("--limit", type=int, default=20)
+    p_fund_search.set_defaults(func=cmd_fund_search)
 
     p_get = sub.add_parser("get", help="raw GET against any product/path (escape hatch)")
     p_get.add_argument("--product", required=True)

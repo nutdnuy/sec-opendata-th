@@ -22,12 +22,15 @@ Also support v2 cursor-paginated endpoints, especially `/v2/fund/...` and
 - Add tests for request path inference, GET/POST behavior, and CLI changes.
 - Use `--cursor-paginate` for v2 endpoints returning `next_cursor` and `items`.
 - Prefer `.venv/bin/python -m pytest -q` for verification.
+- Resolve fund/AMC names with the bundled offline `amc-search` and
+  `fund-search` commands before making a live request.
 
 ## Useful Commands
 
 ```bash
 .venv/bin/python -m pytest -q
 .venv/bin/python -m secopendata categories
+.venv/bin/python -m secopendata fund-search "K-CHANGE" --status Registered
 .venv/bin/python -m secopendata request --method GET --path /v1/one-report/fs/2021/financial_statement/C0000000013
 .venv/bin/python -m secopendata request --method GET --path /v2/fund/factsheet/performance --cursor-paginate
 ```

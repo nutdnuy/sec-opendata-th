@@ -9,9 +9,29 @@ Wrapper skill for calling the Thai SEC's Open Data API. In this repository,
 prefer the bundled Python CLI/client over raw `curl` because it handles key
 resolution, retry/backoff, rate limiting, JSON output, and v2 cursor pagination.
 
+## 0. Resolve fund and AMC names offline first
+
+The plugin bundles a compact SEC fund-profile snapshot so name lookup does not
+need a subscription key or a network request. Use it before asking for a key
+when the user gives a fund name, abbreviation, AMC name, `proj_id`, or AMC
+`unique_id`:
+
+```bash
+python -m secopendata catalog-info
+python -m secopendata amc-search "กสิกร"
+python -m secopendata fund-search "K-CHANGE" --status Registered
+python -m secopendata fund-search "หุ้นไทย" --amc "SCB" --limit 20
+```
+
+Search supports Thai/English names, abbreviations, IDs, AMC filters, and fund
+status filters. Report the snapshot's `as_of` date when freshness matters. Use
+the live API only after resolving IDs locally or when the user needs newer data.
+
 ## 1. Get the API key — every time, from the conversation only
 
-This skill is shared/portable, so **never read or write the key to disk** and never hardcode it in commands you save to files.
+This rule applies to live API requests, not the bundled offline catalog. This
+skill is shared/portable, so **never read or write the key to disk** and never
+hardcode it in commands you save to files.
 
 - If the user has already given a key earlier in *this* conversation, reuse it.
 - Otherwise, ask the user directly: "ขอ Ocp-Apim-Subscription-Key ของคุณเพื่อใช้เรียก SEC Open API" before making any request.
