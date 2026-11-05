@@ -14,6 +14,7 @@ from typing import Any
 from .catalog import FundCatalog
 from .client import NotSubscribedError, SECAPIError, SECClient, infer_key_scope
 from .config import MissingKeyError
+from .onboarding import OnboardingError, SCOPES, run_onboarding
 from .products import CATEGORIES, REGISTRY, FundDailyInfo, FundFactsheet
 
 
@@ -48,6 +49,10 @@ def cmd_products(args: argparse.Namespace, client: SECClient) -> Any:
         {"name": p.name, "title": p.title, "description": p.description}
         for p in REGISTRY.values()
     ]
+
+
+def cmd_onboarding(args: argparse.Namespace, client: SECClient) -> Any:
+    return run_onboarding(args.scope, status=args.status, replace=args.replace)
 
 
 def cmd_categories(args: argparse.Namespace, client: SECClient) -> Any:
@@ -172,6 +177,16 @@ def build_parser() -> argparse.ArgumentParser:
     parser.add_argument("--timeout", type=int, default=30)
     sub = parser.add_subparsers(dest="command", required=True)
 
+    p_onboarding = sub.add_parser(
+        "onboarding", aliases=["onBording"],
+        help="set up a subscription key in your terminal (no API request)",
+    )
+    p_onboarding.add_argument("--scope", choices=SCOPES, help="key scope; default: fund")
+    mode = p_onboarding.add_mutually_exclusive_group()
+    mode.add_argument("--status", action="store_true", help="show key presence without revealing it")
+    mode.add_argument("--replace", action="store_true", help="replace a saved key using hidden input")
+    p_onboarding.set_defaults(func=cmd_onboarding)
+
     sub.add_parser("products", help="list legacy registered API products").set_defaults(func=cmd_products)
     sub.add_parser("categories", help="list SEC Open Data portal key scopes").set_defaults(func=cmd_categories)
     sub.add_parser("amcs", help="list all asset management companies").set_defaults(func=cmd_amcs)
@@ -256,6 +271,9 @@ def main(argv: list[str] | None = None) -> int:
     except SECAPIError as exc:
         print(f"error: {exc}", file=sys.stderr)
         return 5
+    except OnboardingError as exc:
+        print(f"error: {exc}", file=sys.stderr)
+        return 2
 
 
 if __name__ == "__main__":

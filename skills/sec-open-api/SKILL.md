@@ -9,6 +9,11 @@ Wrapper skill for calling the Thai SEC's Open Data API. In this repository,
 prefer the bundled Python CLI/client over raw `curl` because it handles key
 resolution, retry/backoff, rate limiting, JSON output, and v2 cursor pagination.
 
+First read `references/runtime.md` to locate the bundled runtime from any
+working directory. For first-time credentials or `/onBording`, follow
+`../sec-onboarding/SKILL.md`. For name/ID lookup alone, follow
+`../sec-fund-search/SKILL.md`.
+
 ## 0. Resolve fund and AMC names offline first
 
 The plugin bundles a compact SEC fund-profile snapshot so name lookup does not
@@ -27,16 +32,18 @@ Search supports Thai/English names, abbreviations, IDs, AMC filters, and fund
 status filters. Report the snapshot's `as_of` date when freshness matters. Use
 the live API only after resolving IDs locally or when the user needs newer data.
 
-## 1. Get the API key — every time, from the conversation only
+## 1. Reuse configured credentials
 
-This rule applies to live API requests, not the bundled offline catalog. This
-skill is shared/portable, so **never read or write the key to disk** and never
-hardcode it in commands you save to files.
+The CLI resolves the scope-specific environment variable, `SEC_API_KEY`, and
+the local key store automatically. Keep credentials out of chat and command
+arguments; use the CLI's normal resolution. Before a first live request, use
+`onboarding --status --scope <scope>` to check redacted configuration metadata.
 
-- If the user has already given a key earlier in *this* conversation, reuse it.
-- Otherwise, ask the user directly: "ขอ Ocp-Apim-Subscription-Key ของคุณเพื่อใช้เรียก SEC Open API" before making any request.
-- If the user instead says it's in an environment variable (e.g. `SEC_API_KEY`), use that env var in the command rather than asking again.
-- Never echo the raw key back in your own commentary; only pass it inside the request header.
+When a key is missing (CLI exit 3), follow `../sec-onboarding/SKILL.md`:
+`/onBording` in Claude, or `$sec-onboarding` in Codex. The user enters the key
+once in their terminal; later conversations reuse it. Offline lookups skip
+credential setup. Configuration status does not verify a subscription: report
+API access as verified only after a successful live response.
 
 ## 2. Base URL & headers
 
@@ -55,7 +62,7 @@ resolved env var/key store:
 Preferred CLI examples:
 
 ```bash
-SEC_PVD_KEY="$SEC_API_KEY" python -m secopendata request \
+python -m secopendata request \
   --method GET \
   --path /v1/pvd/factsheet/amc
 ```
@@ -63,7 +70,7 @@ SEC_PVD_KEY="$SEC_API_KEY" python -m secopendata request \
 POST endpoints (search-style) send a JSON body, e.g.:
 
 ```bash
-SEC_LICENSE_CHECK_KEY="$SEC_API_KEY" python -m secopendata request \
+python -m secopendata request \
   --method POST \
   --path /v1/license-check/licensee/person \
   --json '{"Name":"สมชาย"}'
@@ -90,7 +97,7 @@ Most v2 endpoints return:
 - Older v1 endpoints (license-check, pvd, digital-asset, one-report) do not paginate — they return all `items` in one shot.
 
 ```bash
-SEC_FUND_KEY="$SEC_API_KEY" python -m secopendata request \
+python -m secopendata request \
   --method GET \
   --path /v2/fund/factsheet/performance \
   --cursor-paginate \

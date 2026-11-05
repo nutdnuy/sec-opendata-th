@@ -53,7 +53,9 @@ class MissingKeyError(RuntimeError):
         super().__init__(
             f"No subscription key for product '{product}'. Set "
             f"${self.env_name} (or $SEC_API_KEY), or add it under [keys] in "
-            f"{keys_file_path()}."
+            f"{keys_file_path()}. For first-time setup, run "
+            "`python -m secopendata onBording`, /onBording (Claude), "
+            "or $sec-onboarding (Codex)."
         )
 
 

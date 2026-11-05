@@ -12,7 +12,7 @@
     {
       "name": "sec-opendata",
       "description": "Pull Thai SEC Open Data from api.sec.or.th across current portal categories and legacy fund endpoints.",
-      "version": "0.1.0",
+      "version": "0.2.0",
       "source": "./",
       "author": {
         "name": "nutdnuy",
