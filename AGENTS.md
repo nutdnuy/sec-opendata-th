@@ -47,6 +47,12 @@ coverage mechanism for all categories.
 
 ## Keys
 
+First-time setup uses `/onBording` (Claude command) or `$sec-onboarding`
+(Codex skill), backed by `python -m secopendata onboarding`. Secrets are entered
+in the user's terminal with hidden input. Use `onboarding --status --scope ...`
+for redacted metadata; never read the key store into agent context. A local
+configuration check does not verify live API access.
+
 Never commit subscription keys. Key resolution is:
 
 1. explicit value in code
@@ -63,7 +69,8 @@ Examples: `SEC_ONE_REPORT_KEY`, `SEC_DIGITAL_ASSET_KEY`, `SEC_FUND_KEY`,
 - Codex marketplace manifest: `.agents/plugins/marketplace.json`
 - Claude plugin manifest: `.claude-plugin/plugin.json`
 - Claude marketplace manifest: `.claude-plugin/marketplace.json`
-- Shared skill: `skills/sec-open-api/SKILL.md`
+- Shared skills: `skills/sec-onboarding/`, `skills/sec-fund-search/`,
+  `skills/sec-open-api/`
 - Claude slash commands: `commands/*.md`
 - GitHub Copilot instructions: `.github/copilot-instructions.md`
 - Antigravity/Gemini instructions: `GEMINI.md`
@@ -82,3 +89,7 @@ same guidance.
 ```bash
 python3 ~/.codex/skills/.system/plugin-creator/scripts/validate_plugin.py .
 ```
+
+If that external validator is unavailable, run the repository's packaging
+checks with `python3 scripts/validate_skills.py` and report that this is a
+structural check, not a host application's installation test.

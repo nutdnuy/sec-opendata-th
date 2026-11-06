@@ -1,6 +1,6 @@
 {
   "name": "sec-opendata",
-  "version": "0.1.0",
+  "version": "0.2.0",
   "description": "Pull Thai SEC Open Data from api.sec.or.th across v1/v2 bond, fund, PVD, digital asset, Licence Check, One Report, and related endpoints.",
   "author": {
     "name": "nutdnuy",
@@ -22,6 +22,8 @@
     "nav"
   ],
   "skills": [
-    "./skills/sec-open-api"
+    "./skills/sec-open-api",
+    "./skills/sec-onboarding",
+    "./skills/sec-fund-search"
   ]
 }

@@ -1,6 +1,6 @@
 # sec-opendata-th
 
-A Python client **and** Codex/Claude plugin for pulling Thai capital-market
+A reusable **skill set**, Python client, and Codex/Claude plugin for pulling Thai capital-market
 data from the SEC OpenAPI (`api.sec.or.th`) — every SEC Open Data portal
 category, including digital assets, funds, Licence Check, One Report, provident
 funds, debt, equity, ESG, capital-market operators/professionals, investors,
@@ -17,16 +17,86 @@ endpoint once you have the matching subscription key.
 ```bash
 git clone https://github.com/nutdnuy/sec-opendata-th
 cd sec-opendata-th
-pip install -e .            # installs the `secopendata` package + CLI
-# (or: pip install -r requirements.txt and run via `python -m secopendata`)
+python3 -m venv .venv       # Python 3.11+
+.venv/bin/python -m pip install -e .
 ```
+
+On Windows, use `py -3.11 -m venv .venv` and
+`.venv\Scripts\python.exe` for the interpreter.
+
+## First run: `/onBording`
+
+Start with `/onBording` in Claude. When installed as a plugin, use the
+namespaced command `/sec-opendata:onBording`. In Codex, select
+`$sec-onboarding` from the skill picker; Codex does not register Claude's custom
+slash commands. You can also ask in ordinary text to run the `/onBording`
+workflow.
+
+The agent checks configuration, helps select the API scope, and gives you a
+terminal command. Enter your key in **your own terminal**, where input is hidden:
+
+```bash
+.venv/bin/python -m secopendata onboarding --scope fund
+# Exact spelling is also available as a CLI alias:
+.venv/bin/python -m secopendata onBording --scope fund
+
+# Read configuration metadata without revealing the key or calling SEC:
+.venv/bin/python -m secopendata onboarding --status --scope fund
+```
+
+The default scope is `fund`. Run `categories` or `products` to select another
+scope. Setup stores keys in `~/.config/secopendata/keys.toml` (or the
+`SECOPENDATA_KEYS_FILE` override), preserves other scopes, and reuses existing
+credentials on subsequent runs. Use `--replace` to change a saved key. Existing
+environment variables still take precedence. On POSIX systems the key file is
+restricted to its owner (mode `0600`).
+
+Do not paste keys into chat or command arguments. A configured key is **not yet
+API-verified**; onboarding performs no live request. Offline searches work
+without setup. After terminal setup, return to the agent to continue your query.
+
+## Skills
+
+| Skill | Purpose |
+|---|---|
+| `sec-onboarding` | First-time setup, redacted status, and key replacement |
+| `sec-fund-search` | Offline fund/AMC name and ID lookup, without a key |
+| `sec-open-api` | Live SEC data across categories, using saved credentials |
+
+Use the Codex/Claude plugin installation below to install the full set. To use
+native skills without a plugin, keep this full checkout and link the three skill
+directories into your agent's skill directory. From the repository root on
+macOS/Linux, choose **one** target:
+
+```bash
+# Codex native skills:
+skill_target="$HOME/.agents/skills"
+# Or Claude native skills:
+# skill_target="$HOME/.claude/skills"
+mkdir -p "$skill_target"
+for skill in sec-onboarding sec-fund-search sec-open-api; do
+  ln -s "$PWD/skills/$skill" "$skill_target/$skill"
+done
+```
+
+If a target already exists, inspect it before replacing it. For the exact bare
+`/onBording` command in native Claude, also link the command:
+
+```bash
+mkdir -p "$HOME/.claude/commands"
+ln -s "$PWD/commands/onBording.md" "$HOME/.claude/commands/onBording.md"
+```
+
+Restart/reload the agent after installation. Choose native skills or the plugin
+to avoid duplicate entries. Copying only `SKILL.md` or a single skill directory
+does not include the shared Python package, catalog, or sibling references.
 
 ## Subscription keys
 
-Get keys from the SEC API Developer Portal. The portal is migrating:
+Get keys from the SEC API Developer Portal:
 [secopendata.sec.or.th/sec-open-apis](https://secopendata.sec.or.th/sec-open-apis)
-is the new home; the old [api-portal.sec.or.th](https://api-portal.sec.or.th)
-is discontinued on 30 June 2026. Subscription keys carry over.
+is the current home. The SEC announced discontinuation of the old portal on
+30 June 2026; see the [official migration notice](https://api-portal.sec.or.th/changes).
 Keys are resolved in this order:
 
 1. value passed in code
@@ -72,8 +142,10 @@ secopendata request --method GET --path /v2/fund/factsheet/benchmarks --cursor-p
 secopendata request --method POST --path /v1/digital-asset/profile/intermediary --json '{"IntermediaryName":""}'
 ```
 
-All subcommands print JSON. Exit codes: `3` missing key, `4` not subscribed,
-`5` other API error.
+Successful subcommands print JSON; onboarding prompts go to stderr. Exit codes:
+`2` invalid input or setup cancelled/failed, `3` missing key for a data request,
+`4` not subscribed, `5` other API error. A successful `onboarding --status`
+returns `0` even when `configured` is `false`.
 
 `amc-search` and `fund-search` use the bundled compact SEC profile snapshot and
 do not make a network request. Run `catalog-info` to check its as-of date before
@@ -157,7 +229,7 @@ export SEC_API_BASE_URL="https://new-host.sec.or.th"
 ## Use as a Codex plugin
 
 This repo is also a Codex plugin (`.codex-plugin/plugin.json`) with a
-`sec-open-api` skill. The skill includes endpoint references for bond, fund,
+three skills listed above. The API skill includes endpoint references for bond, fund,
 PVD, digital asset, license, and One Report APIs.
 
 ```bash
@@ -185,6 +257,7 @@ The Claude UI "Add marketplace" field should use the same GitHub URL:
 
 Then in Claude Code:
 
+- `/sec-opendata:onBording` — first-time API-key setup
 - `/sec-categories`
 - `/sec-fund-search K-CHANGE`
 - `/sec-request GET /v1/one-report/fs/2021/financial_statement/C0000000013`
@@ -192,8 +265,8 @@ Then in Claude Code:
 - `/sec-nav <proj_id> 2026-06-16`
 - `/sec-fund-info <proj_id> <top5_period>`
 
-Or just ask in natural language — the `sec-open-api` skill triggers on Thai
-SEC Open Data requests and runs the CLI for you.
+Or just ask in natural language. Name lookups use `sec-fund-search` offline;
+live requests use `sec-open-api` and route missing credentials to onboarding.
 
 ## Develop
 

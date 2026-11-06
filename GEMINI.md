@@ -20,6 +20,11 @@ Report, provident funds, debt, equity, ESG, operators/professionals, investors,
 and future SEC portal categories. Use `--cursor-paginate` for v2 endpoints that
 return `next_cursor` and `items`.
 
+For `/onBording` or missing credentials, follow
+`skills/sec-onboarding/SKILL.md`; have the user run the hidden-input setup in
+their own terminal. Reuse existing configuration and inspect only redacted
+status. For offline lookups, use `skills/sec-fund-search/SKILL.md`.
+
 Resolve fund and AMC names from the bundled offline catalog before asking for a
 subscription key. Use the live API when the user needs fresher data or details
 that are not present in the compact catalog.

@@ -1,6 +1,6 @@
 {
   "name": "sec-opendata",
-  "version": "0.1.0",
+  "version": "0.2.0",
   "description": "Pull Thai SEC Open Data from api.sec.or.th across v1/v2 bond, fund, PVD, digital asset, Licence Check, One Report, and related endpoints.",
   "author": {
     "name": "nutdnuy"
@@ -22,8 +22,8 @@
   "skills": "./skills/",
   "interface": {
     "displayName": "SEC OpenData TH",
-    "shortDescription": "Fetch Thai SEC Open Data across all portal categories.",
-    "longDescription": "A Codex skill and Python CLI for SEC Open Data Thailand. It supports the sec-open-api skill with bundled endpoint references for v2 bond/fund APIs and v1 PVD, digital asset, Licence Check, and One Report APIs, plus generic raw request support.",
+    "shortDescription": "Set up SEC access, find funds offline, and fetch Thai market data.",
+    "longDescription": "Three skills and a Python CLI for SEC Open Data Thailand: sec-onboarding for local credential setup, sec-fund-search for offline fund/AMC discovery, and sec-open-api for live v1/v2 data across portal categories with bundled endpoint references.",
     "developerName": "nutdnuy",
     "category": "Data & Analytics",
     "capabilities": [
@@ -32,6 +32,8 @@
     ],
     "websiteURL": "https://secopendata.sec.or.th/",
     "defaultPrompt": [
+      "Set up my SEC API key with sec-onboarding.",
+      "Find a Thai mutual fund by name without an API key.",
       "Fetch fund performance history.",
       "Fetch a One Report financial statement.",
       "List SEC portal API key scopes."

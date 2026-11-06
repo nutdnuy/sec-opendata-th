@@ -17,6 +17,9 @@ Also support v2 cursor-paginated endpoints, especially `/v2/fund/...` and
   `secopendata request` CLI command.
 - Do not narrow behavior back to only `FundFactsheet` or `FundDailyInfo`.
 - Never hard-code or commit SEC subscription keys.
+- Follow `skills/sec-onboarding/SKILL.md` for `/onBording` or missing keys.
+  The user enters secrets in their terminal; inspect only redacted
+  `onboarding --status` metadata and reuse configured credentials.
 - Key scopes map to environment variables such as `SEC_ONE_REPORT_KEY` and
   `SEC_DIGITAL_ASSET_KEY`, `SEC_FUND_KEY`, `SEC_BOND_KEY`, and `SEC_PVD_KEY`.
 - Add tests for request path inference, GET/POST behavior, and CLI changes.

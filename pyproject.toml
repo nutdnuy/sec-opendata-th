@@ -4,7 +4,7 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "sec-opendata-th"
-version = "0.1.0"
+version = "0.2.0"
 description = "Python client for the Thai SEC OpenAPI (api.sec.or.th): fund factsheets, daily NAV, and any SEC API product."
 readme = "README.md"
 requires-python = ">=3.11"

@@ -9,11 +9,17 @@ the bundled reference files.
 
 For slash-command workflows, use:
 
+- `/onBording` (plugin-qualified: `/sec-opendata:onBording`)
 - `/sec-categories`
 - `/sec-request`
 - `/sec-funds`
 - `/sec-nav`
 - `/sec-fund-info`
+
+Use `skills/sec-onboarding/SKILL.md` for credential setup and
+`skills/sec-fund-search/SKILL.md` for offline name lookup. First read the shared
+runtime guide referenced by these skills. Have the user enter secrets in their
+own terminal, then check redacted configuration status and resume their task.
 
 Before handoff, run:
 
